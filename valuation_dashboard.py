@@ -2,9 +2,18 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-# --- STYLING & CONFIG ---
-st.set_page_config(page_title="Stock Valuation Dashboard", layout="wide")
-st.title("📊 Corporate Valuation & Financial Ratio Dashboard")
+# Set page configuration
+st.set_page_config(
+    page_title="Equity Valuation Dashboard",
+    page_icon="📈",
+    layout="wide"
+)
+
+st.title("📈 Fundamental Equity Valuation Dashboard")
+st.write("""
+**Directions:** Input any public ticker symbol 
+to instantly pull real-time market metrics and financial statement data.
+""")
 
 # --- SIDEBAR INPUTS ---
 st.sidebar.header("🛠️ Dashboard Controls")
