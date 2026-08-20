@@ -18,7 +18,7 @@ to instantly pull real-time market metrics and financial statement data.
 
 # --- SIDEBAR INPUTS ---
 st.sidebar.header("🛠️ Dashboard Controls")
-ticker_symbol = st.sidebar.text_input("Enter Ticker Symbol (e.g., AAPL, MSFT, F):", value="F").upper()
+ticker_symbol = st.sidebar.text_input("Enter Ticker Symbol (e.g., AAPL, MSFT, F):", value="AAPL").upper()
 
 # --- DATA FETCHING ---
 if ticker_symbol:
