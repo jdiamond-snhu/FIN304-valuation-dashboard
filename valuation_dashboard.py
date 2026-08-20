@@ -10,7 +10,7 @@ st.set_page_config(
 )
 
 st.title("📈 Fundamental Equity Valuation Dashboard")
-st.write("""Designed by Jeff Diamond, 2026""")
+st.caption("""Designed by Jeff Diamond, 2026""")
 st.write("""
 **Directions:** Input any public ticker symbol 
 to instantly pull real-time market metrics and financial statement data.
