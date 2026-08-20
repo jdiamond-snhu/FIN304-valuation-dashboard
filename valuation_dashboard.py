@@ -2,116 +2,149 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-# --- STYLING & CONFIG ---
-st.set_page_config(page_title="Stock Valuation Dashboard", layout="wide")
-st.title("📊 Corporate Valuation & Financial Ratio Dashboard")
+# Set page configuration
+st.set_page_config(
+    page_title="Equity Valuation Dashboard",
+    page_icon="📈",
+    layout="wide"
+)
 
-# --- SIDEBAR INPUTS ---
-st.sidebar.header("🛠️ Dashboard Controls")
-ticker_symbol = st.sidebar.text_input("Enter Ticker Symbol (e.g., AAPL, MSFT, F):", value="AAPL").upper()
+st.title("📈 Fundamental Equity Valuation Dashboard")
+st.markdown("""
+This dashboard replicates the corporate financial analysis and valuation models 
+we explored during our foundational valuation studies. Input any public ticker symbol 
+to instantly pull real-time market metrics and financial statement data.
+""")
 
-# --- DATA FETCHING ---
+# Sidebar Input
+st.sidebar.header("User Input Settings")
+ticker_symbol = st.sidebar.text_input("Enter Ticker Symbol (e.g., AAPL, MSFT, F)", value="AAPL").upper().strip()
+
 if ticker_symbol:
     try:
         with st.spinner(f"Fetching financial data for {ticker_symbol}..."):
-            stock = yf.Ticker(ticker_symbol)
-            info = stock.info
+            ticker = yf.Ticker(ticker_symbol)
+            info = ticker.info
             
-            # Extract Core Income Statement Data
-            net_profits = info.get("netIncomeToCommon")
-            sales = info.get("totalRevenue")
-            shares_outstanding = info.get("sharesOutstanding")
-            stock_price = info.get("currentPrice") or info.get("previousClose")
+            # Fetch Statements
+            financials = ticker.financials      # Income Statement
+            balance_sheet = ticker.balance_sheet # Balance Sheet
             
-            # Extract Balance Sheet Metrics
-            total_equity = info.get("totalShareholdersEquity")
-            total_current_assets = info.get("totalCurrentAssets")
-            total_current_liabilities = info.get("totalCurrentLiabilities")
-            
-            # Extract Dividends and Growth
-            dividend_per_share = info.get("dividendRate") or 0.0
-            peg_ratio = info.get("pegRatio")
-            
-        # --- VERIFICATION CRITICAL EXCEPTION ---
-        if not net_profits or not sales or not shares_outstanding:
-            st.error("Insufficient financial statement history available for this specific asset ticker layout.")
-        else:
-            # --- CONVERT RAW DATA TO THOUSANDS FOR CLEAN VIEW ---
-            net_profits_k = net_profits / 1000
-            sales_k = sales / 1000
-            equity_k = total_equity / 1000 if total_equity else None
-            
-            # --- MATH MODEL COMPUTATIONS ---
-            eps = net_profits / shares_outstanding
-            
-            # Book value and P/B
-            book_value_per_share = total_equity / shares_outstanding if total_equity else None
-            pb_ratio = stock_price / book_value_per_share if book_value_per_share else None
-            
-            # Profitability & Valuation Multiples
-            pe_ratio = stock_price / eps if eps > 0 else None
-            net_profit_margin = (net_profits / sales) * 100
-            
-            # Dividends
-            dividend_yield = (dividend_per_share / stock_price) * 100 if stock_price else 0.0
-            dividend_payout = (dividend_per_share / eps) * 100 if eps > 0 else 0.0
-            
-            # Liquidity
-            current_ratio = total_current_assets / total_current_liabilities if total_current_assets and total_current_liabilities else None
-
-            # --- RENDER WEB UI LAYOUT ---
-            st.subheader(f"🏢 Company Profile: {info.get('longName', ticker_symbol)}")
-            st.write(f"**Sector:** {info.get('sector', 'N/A')} | **Industry:** {info.get('industry', 'N/A')}")
-            st.markdown("---")
-            
-            # --- CORE SCREENER COLUMNS ---
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                # Group 1 Header with Tooltip
-                st.markdown(
-                    "### 📊 Profitability & Efficiency", 
-                    help="**EPS:** Net Income ÷ Shares Outstanding. Measures core profit allocated to each share.\n\n"
-                         "**Net Profit Margin:** (Net Income ÷ Sales) × 100. Percentage of revenue left over after all expenses."
-                )
-                st.metric("Earnings Per Share (EPS)", f"${eps:.2f}")
-                st.metric("Net Profit Margin", f"{net_profit_margin:.2f}%")
-
-            with col2:
-                # Group 2 Header with Tooltip
-                st.markdown(
-                    "### 📖 Book Value & Price Multiples", 
-                    help="**Book Value Per Share:** Total Equity ÷ Shares Outstanding. The net asset value of a company on paper.\n\n"
-                         "**P/E Ratio:** Stock Price ÷ EPS. Measures what the market pays per dollar of current earnings.\n\n"
-                         "**P/B Ratio:** Stock Price ÷ Book Value Per Share. Compares market valuation to accounting balance sheet value."
-                )
-                if book_value_per_share:
-                    st.metric("Book Value Per Share", f"${book_value_per_share:.2f}")
-                st.metric("Price-to-Earnings (P/E) Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
-                st.metric("Price-to-Book (P/B) Ratio", f"{pb_ratio:.2f}" if pb_ratio else "N/A")
-
-            with col3:
-                # Group 3 Header with Tooltip
-                st.markdown(
-                    "### 💸 Liquidity, Leverage & Dividends", 
-                    help="**Current Ratio:** Current Assets ÷ Current Liabilities. Evaluates short-term obligation coverage.\n\n"
-                         "**PEG Ratio:** P/E Ratio ÷ Expected Annual Growth Rate. Adjusts a multiple for its growth engine context.\n\n"
-                         "**Dividend Yield:** (Dividend Per Share ÷ Stock Price) × 100. Annual cash return rate on price paid.\n\n"
-                         "**Dividend Payout Ratio:** (Dividend Per Share ÷ EPS) × 100. Percentage of net profits returned to shareholders."
-                )
-                st.metric("Current Liquidity Ratio", f"{current_ratio:.2f}" if current_ratio else "N/A")
-                st.metric("PEG Ratio", f"{peg_ratio:.2f}" if peg_ratio else "N/A")
-                st.metric("Dividend Yield", f"{dividend_yield:.2f}%")
-                st.metric("Dividend Payout Ratio", f"{dividend_payout:.2f}%")
-
-            # --- DETAILED DATA TABLE ---
-            st.markdown("---")
-            st.markdown("### 🗒️ Raw Financial Data Inputs (in Thousands)")
-            raw_data = {
-                "Financial Metric": ["Net Profits to Common", "Total Revenue (Sales)", "Total Stockholders Equity", "Total Shares Outstanding", "Current Stock Market Price"],
-                "Value": [f"${net_profits_k:,.2f}K", f"${sales_k:,.2f}K", f"${equity_k:,.2f}K" if equity_k else "N/A", f"{shares_outstanding:,.0f}", f"${stock_price:.2f}"]
-            }
-            st.table(pd.DataFrame(raw_data))
-
+        if financials.empty or balance_sheet.empty:
+            st.error(f"Could not find complete financial statements for {ticker_symbol}. Please try a different asset.")
     except Exception as e:
-        st.error(f"Could not retrieve data for ticker token '{ticker_symbol}'. Please verify the symbol or API connectivity. Error: {e}")
+        st.error(f"Error fetching data for '{ticker_symbol}': {str(e)}")
+        st.info("Tip: Double-check the ticker symbol on Yahoo Finance (e.g., BRK-B instead of BRK.B).")
+        st.stop()
+
+    # --- Header Metrics Block ---
+    company_name = info.get('longName', ticker_symbol)
+    current_price = info.get('currentPrice', info.get('previousClose', 0.0))
+    currency = info.get('currency', 'USD')
+    
+    st.header(f"🏢 {company_name} ({ticker_symbol})")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Current Stock Price", f"{current_price:,.2f} {currency}")
+    col2.metric("Market Capitalization", f"${info.get('marketCap', 0):,}")
+    col3.metric("Trailing P/E Ratio", f"{info.get('trailingPE', 'N/A')}")
+    col4.metric("Forward P/E Ratio", f"{info.get('forwardPE', 'N/A')}")
+    
+    st.markdown("---")
+    
+    # --- Dynamic Metrics Calculation Block ---
+    try:
+        # Extract required raw line items from the most recent reporting year
+        latest_year_fin = financials.columns[0]
+        latest_year_bal = balance_sheet.columns[0]
+        
+        # Safe extraction helper with fallback names often used in yfinance
+        def get_financial_item(df, keys, column):
+            for key in keys:
+                if key in df.index:
+                    return df.loc[key, column]
+            return 0.0
+
+        net_income = get_financial_item(financials, ['Net Income', 'Net Income Common Stockholders'], latest_year_fin)
+        total_revenue = get_financial_item(financials, ['Total Revenue'], latest_year_fin)
+        shares_outstanding = info.get('sharesOutstanding', get_financial_item(balance_sheet, ['Ordinary Shares Number', 'Share Issued'], latest_year_bal))
+        total_equity = get_financial_item(balance_sheet, ['Stockholders Equity', 'Total Stockholders Equity'], latest_year_bal)
+        total_assets = get_financial_item(balance_sheet, ['Total Assets'], latest_year_bal)
+        current_assets = get_financial_item(balance_sheet, ['Total Current Assets'], latest_year_bal)
+        current_liabilities = get_financial_item(balance_sheet, ['Total Current Liabilities'], latest_year_bal)
+        long_term_debt = get_financial_item(balance_sheet, ['Long Term Debt', 'LongTermDebt'], latest_year_bal)
+        dividend_per_share = info.get('dividendRate', 0.0) if info.get('dividendRate') is not None else 0.0
+        eps_trailing = info.get('trailingEps', (net_income / shares_outstanding if shares_outstanding else 0.0))
+        earnings_growth = info.get('earningsGrowth', 0.05) # fallback fallback standard growth 5% whole integer target
+        if earnings_growth:
+            growth_pct = earnings_growth * 100
+        else:
+            growth_pct = 5.0
+
+        # Calculations
+        computed_eps = net_income / shares_outstanding if shares_outstanding else 0.0
+        book_value_per_share = total_equity / shares_outstanding if shares_outstanding else 0.0
+        price_to_book = current_price / book_value_per_share if book_value_per_share else 0.0
+        net_profit_margin = (net_income / total_revenue) * 100 if total_revenue else 0.0
+        current_ratio = current_assets / current_liabilities if current_liabilities else 0.0
+        debt_to_equity = (long_term_debt / total_equity) * 100 if total_equity else 0.0
+        roa = (net_income / total_assets) * 100 if total_assets else 0.0
+        roe = (net_income / total_equity) * 100 if total_equity else 0.0
+        
+        # Dividend Metrics
+        payout_ratio = (dividend_per_share / eps_trailing) * 100 if eps_trailing and dividend_per_share else 0.0
+        if payout_ratio == 0.0 and info.get('payoutRatio'):
+            payout_ratio = info.get('payoutRatio') * 100
+        div_yield = (dividend_per_share / current_price) * 100 if current_price else 0.0
+        
+        # PEG Calculation
+        pe_ratio = info.get('trailingPE', 0.0)
+        peg_ratio = (pe_ratio / growth_pct) if growth_pct and pe_ratio else 0.0
+
+        # --- Display Computed Dashboard Metrics ---
+        st.header("📊 Replicated Portfolio & Valuation Metrics")
+        st.markdown(f"Calculated using the latest annual report data available *({latest_year_fin.strftime('%Y-%m-%d') if hasattr(latest_year_fin, 'strftime') else latest_year_fin})*:")
+        
+        m_col1, m_col2, m_col3 = st.columns(3)
+        
+        with m_col1:
+            st.subheader("💡 Profitability & Efficiency")
+            st.metric("Net Profit Margin", f"{net_profit_margin:.2f}%")
+            st.metric("Return on Assets (ROA)", f"{roa:.2f}%")
+            st.metric("Return on Equity (ROE)", f"{roe:.2f}%")
+            st.metric("Calculated EPS", f"${computed_eps:.2f}")
+
+        with m_col2:
+            st.subheader("📖 Book Value & Price Multiples")
+            st.metric("Book Value Per Share", f"${book_value_per_share:.2f}")
+            st.metric("Price-to-Book (P/B) Ratio", f"{price_to_book:.2f}x")
+            st.metric("Price-to-Sales (P/S) Ratio", f"{info.get('priceToSalesTrailing12Months', 'N/A') if isinstance(info.get('priceToSalesTrailing12Months'), (int, float)) else 'N/A'}")
+            st.metric("PEG Ratio", f"{peg_ratio:.2f}x" if peg_ratio else "N/A")
+
+        with m_col3:
+            st.subheader("🛡️ Liquidity, Leverage & Dividends")
+            st.metric("Current Ratio", f"{current_ratio:.2f}")
+            st.metric("Debt-to-Equity Ratio", f"{debt_to_equity:.2f}%")
+            st.metric("Dividend Yield", f"{div_yield:.2f}%")
+            st.metric("Dividend Payout Ratio", f"{payout_ratio:.2f}%")
+
+    except Exception as calc_error:
+        st.warning("Could not calculate all specific metrics due to non-standard financial formatting for this ticker.")
+        st.info("Showing raw data options instead.")
+
+    st.markdown("---")
+    
+    # --- Raw Statements Explorer Tab Structure ---
+    st.header("🗂️ Underlying Financial Statements Explorer")
+    tab1, tab2 = st.tabs(["Income Statement", "Balance Sheet"])
+    
+    with tab1:
+        st.subheader("Income Statement (Most Recent Years)")
+        st.dataframe(financials)
+        
+    with tab2:
+        st.subheader("Balance Sheet (Most Recent Years)")
+        st.dataframe(balance_sheet)
+
+else:
+    st.info("Please enter a valid stock ticker symbol in the sidebar to begin generating data visualization maps.")
