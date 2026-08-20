@@ -11,8 +11,7 @@ st.set_page_config(
 
 st.title("📈 Fundamental Equity Valuation Dashboard")
 st.markdown("""
-This dashboard replicates the corporate financial analysis and valuation models 
-we explored during our foundational valuation studies. Input any public ticker symbol 
+**Directions:** Input any public ticker symbol 
 to instantly pull real-time market metrics and financial statement data.
 """)
 
