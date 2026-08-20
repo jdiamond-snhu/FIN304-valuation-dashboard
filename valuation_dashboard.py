@@ -10,10 +10,10 @@ st.set_page_config(
 )
 
 st.title("📈 Fundamental Equity Valuation Dashboard")
-st.write("
+st.write("""
 **Directions:** Input any public ticker symbol 
 to instantly pull real-time market metrics and financial statement data.
-")
+""")
 
 # Sidebar Input
 st.sidebar.header("User Input Settings")
