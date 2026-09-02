@@ -135,8 +135,10 @@ except Exception as e:
     st.error(f"An error occurred while loading data: {e}")
     st.stop()
 
-# 2. Your UI layout can now begin safely on line 129:
-# --- RENDER WEB UI LAYOUT --- 
+except:
+    pass
+
+# --- RENDER WEB UI LAYOUT ---
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
