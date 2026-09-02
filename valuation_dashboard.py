@@ -124,23 +124,18 @@ if ticker_symbol:
                 dividend_payout = (data["dividend_per_share"] / data["eps"]) * 100
             else:
                 dividend_payout = (data["payout_ratio_fallback"] * 100)
-# Look for your open try block here...
+# --- FETCH AND PREPARE DATA ---
 try:
-    # (Your data fetching code is here)
-       # ... your yfinance data fetching logic is up here ...
+    # (Your yfinance data fetching logic runs here)
+    # Make sure your ticker data is pulling the beta safely into your data dictionary:
     data["beta"] = ticker_data.info.get("beta")
 
-# 1. This must be at the very end of your data gathering code block:
 except Exception as e:
     st.error(f"An error occurred while loading data: {e}")
     st.stop()
 
-except:
-    pass
-
-# --- RENDER WEB UI LAYOUT ---
+# --- RENDER WEB UI LAYOUT --- 
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
-
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
 st.markdown("---")
 
