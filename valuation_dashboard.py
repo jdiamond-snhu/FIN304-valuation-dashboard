@@ -125,54 +125,62 @@ if ticker_symbol:
             else:
                 dividend_payout = (data["payout_ratio_fallback"] * 100)
 
-            # --- RENDER WEB UI LAYOUT ---
-            st.subheader(f"🏢 Company Profile: {data['long_name']}")
-            st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
-            st.markdown("---")
-            
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                st.markdown("### 📈 Earnings & Valuation")
-                st.metric("Earnings Per Share (EPS)", f"${data['eps']:.2f}" if data['eps'] else "N/A")
-                st.metric("Price-to-Earnings (P/E) Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
-                st.metric("Price-to-Book (P/B) Ratio", f"{pb_ratio:.2f}" if pb_ratio else "N/A")
-                st.metric("PEG Ratio", f"{data['peg_ratio']:.2f}" if data['peg_ratio'] else "N/A")
+           # --- RENDER WEB UI LAYOUT ---
+st.subheader(f"🏢 Company Profile: {data['long_name']}")
+st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
+st.markdown("---")
 
-            with col2:
-                st.markdown("### 💡 Efficiency & Returns")
-                st.metric("Net Profit Margin", f"{net_profit_margin:.2f}%")
-                st.metric("Current Liquidity Ratio", f"{current_ratio:.2f}" if current_ratio else "N/A")
-                st.metric("Book Value Per Share", f"${book_value_per_share:.2f}" if book_value_per_share else "N/A")
+col1, col2, col3 = st.columns(3)
 
-            with col3:
-                st.markdown("### 💸 Dividends & Capital Allocation")
-                st.metric("Dividend Yield", f"{dividend_yield:.2f}%")
-                st.metric("Dividend Payout Ratio", f"{dividend_payout:.2f}%")
-                st.metric("Current Market Price", f"${data['stock_price']:.2f}")
+with col1:
+    st.markdown("### 📈 Earnings & Valuation")
+    st.metric("Earnings Per Share (EPS)", f"${data['eps']:.2f}" if data['eps'] else "N/A")
+    st.metric("Price-to-Earnings (P/E) Ratio", f"{pe_ratio:.2f}" if pe_ratio else "N/A")
+    st.metric("Price-to-Book (P/B) Ratio", f"{pb_ratio:.2f}" if pb_ratio else "N/A")
+    st.metric("PEG Ratio", f"{data['peg_ratio']:.2f}" if data['peg_ratio'] else "N/A")
+    
+    # Extract beta safely from your yfinance data dictionary
+    beta = data.get("beta")
+    st.metric(
+        label="Beta (Volatility)", 
+        value=f"{beta:.2f}" if beta is not None else "N/A",
+        help="Measures volatility relative to the market. > 1.0 is more volatile; < 1.0 is less volatile."
+    )
 
-            # --- DETAILED DATA TABLE ---
-            st.markdown("---")
-            st.markdown("### 🗒️ Raw Financial Data Inputs (in Thousands)")
-            
-            net_profits_k = (data["net_profits"] / 1000) if data["net_profits"] else 0.0
-            sales_k = (data["sales"] / 1000) if data["sales"] else 0.0
-            equity_k = (data["total_equity"] / 1000) if data["total_equity"] else 0.0
-            assets_k = (data["total_current_assets"] / 1000) if data["total_current_assets"] else 0.0
-            liab_k = (data["total_current_liabilities"] / 1000) if data["total_current_liabilities"] else 0.0
-            
-            raw_data = {
-                "Financial Metric": ["Net Profits to Common", "Total Revenue (Sales)", "Total Stockholders Equity", "Total Current Assets", "Total Current Liabilities", "Total Shares Outstanding"],
-                "Value": [
-                    f"${net_profits_k:,.2f}K" if net_profits_k else "N/A", 
-                    f"${sales_k:,.2f}K" if sales_k else "N/A", 
-                    f"${equity_k:,.2f}K" if equity_k else "N/A", 
-                    f"${assets_k:,.2f}K" if assets_k else "N/A", 
-                    f"${liab_k:,.2f}K" if liab_k else "N/A", 
-                    f"{data['shares_outstanding']:,.0f}" if data['shares_outstanding'] else "N/A"
-                ]
-            }
-            st.table(pd.DataFrame(raw_data))
+with col2:
+    st.markdown("### 💡 Efficiency & Returns")
+    st.metric("Net Profit Margin", f"{net_profit_margin:.2f}%")
+    st.metric("Book Value Per Share", f"${book_value_per_share:.2f}" if book_value_per_share else "N/A")
+
+with col3:
+    st.markdown("### 💸 Dividends & Capital Allocation")
+    st.metric("Dividend Yield", f"{dividend_yield:.2f}%")
+    st.metric("Dividend Payout Ratio", f"{dividend_payout:.2f}%")
+    st.metric("Current Market Price", f"${data['stock_price']:.2f}")
+
+# --- DETAILED DATA TABLE ---
+st.markdown("---")
+st.markdown("### 🗒️ Raw Financial Data Inputs (in Thousands)")
+
+net_profits_k = (data["net_profits"] / 1000) if data["net_profits"] else 0.0
+sales_k = (data["sales"] / 1000) if data["sales"] else 0.0
+equity_k = (data["total_equity"] / 1000) if data["total_equity"] else 0.0
+assets_k = (data["total_current_assets"] / 1000) if data["total_current_assets"] else 0.0
+liab_k = (data["total_current_liabilities"] / 1000) if data["total_current_liabilities"] else 0.0
+
+raw_data = {
+    "Financial Metric": ["Net Profits to Common", "Total Revenue (Sales)", "Total Stockholders Equity", "Total Current Assets", "Total Current Liabilities", "Total Shares Outstanding"],
+    "Value": [
+        f"${net_profits_k:,.2f}K" if net_profits_k else "N/A",
+        f"${sales_k:,.2f}K" if sales_k else "N/A",
+        f"${equity_k:,.2f}K" if equity_k else "N/A",
+        f"${assets_k:,.2f}K" if assets_k else "N/A",
+        f"${liab_k:,.2f}K" if liab_k else "N/A",
+        f"{data['shares_outstanding']:,.0f}" if data['shares_outstanding'] else "N/A"
+    ]
+}
+st.table(pd.DataFrame(raw_data))
+
 
     except Exception as e:
         st.error(f"Yahoo Finance is experiencing temporary cloud network rate blocks. Please wait a few moments and try your request again. Details: {e}")
