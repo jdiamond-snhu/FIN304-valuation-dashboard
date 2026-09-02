@@ -127,14 +127,18 @@ if ticker_symbol:
 # Look for your open try block here...
 try:
     # (Your data fetching code is here)
+       # ... your yfinance data fetching logic is up here ...
     data["beta"] = ticker_data.info.get("beta")
 
-# ---> ADD THESE TWO LINES TO FIX THE CRASH:
+# 1. This must be at the very end of your data gathering code block:
 except Exception as e:
-    st.error(f"Error fetching data: {e}")
+    st.error(f"An error occurred while loading data: {e}")
+    st.stop()
 
-# --- RENDER WEB UI LAYOUT ---
+# 2. Your UI layout can now begin safely on line 129:
+# --- RENDER WEB UI LAYOUT --- 
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
+
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
 st.markdown("---")
 
