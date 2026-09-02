@@ -130,8 +130,10 @@ try:
 except Exception as e:
     st.error(f"Error loading ticker data: {e}")
     st.stop()  # Keeps the app from trying to render the rest of the layout with missing data
-           # --- RENDER WEB UI LAYOUT ---
+
+# Line 129 will now run perfectly:
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
+
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
 st.markdown("---")
 
