@@ -181,6 +181,5 @@ raw_data = {
 }
 st.table(pd.DataFrame(raw_data))
 
-
     except Exception as e:
         st.error(f"Yahoo Finance is experiencing temporary cloud network rate blocks. Please wait a few moments and try your request again. Details: {e}")
