@@ -124,16 +124,17 @@ if ticker_symbol:
                 dividend_payout = (data["dividend_per_share"] / data["eps"]) * 100
             else:
                 dividend_payout = (data["payout_ratio_fallback"] * 100)
+# Look for your open try block here...
 try:
-    ticker_data = yf.Ticker(ticker_symbol)
-    # ... details or mapping logic
+    # (Your data fetching code is here)
+    data["beta"] = ticker_data.info.get("beta")
+
+# ---> ADD THESE TWO LINES TO FIX THE CRASH:
 except Exception as e:
-    st.error(f"Error loading ticker data: {e}")
-    st.stop()  # Keeps the app from trying to render the rest of the layout with missing data
+    st.error(f"Error fetching data: {e}")
 
-# Line 129 will now run perfectly:
+# --- RENDER WEB UI LAYOUT ---
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
-
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
 st.markdown("---")
 
