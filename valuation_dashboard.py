@@ -124,7 +124,12 @@ if ticker_symbol:
                 dividend_payout = (data["dividend_per_share"] / data["eps"]) * 100
             else:
                 dividend_payout = (data["payout_ratio_fallback"] * 100)
-
+try:
+    ticker_data = yf.Ticker(ticker_symbol)
+    # ... details or mapping logic
+except Exception as e:
+    st.error(f"Error loading ticker data: {e}")
+    st.stop()  # Keeps the app from trying to render the rest of the layout with missing data
            # --- RENDER WEB UI LAYOUT ---
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
