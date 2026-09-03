@@ -125,7 +125,6 @@ if ticker_symbol:
             else:
                 dividend_payout = (data["payout_ratio_fallback"] * 100)
 # --- FETCH AND PREPARE DATA ---
-try:
     # (Your yfinance data fetching logic runs here)
     # Make sure your ticker data is pulling the beta safely into your data dictionary:
     data["beta"] = ticker_data.info.get("beta")
