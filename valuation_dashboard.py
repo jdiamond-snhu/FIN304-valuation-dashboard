@@ -95,50 +95,63 @@ def fetch_financial_data(ticker):
 if ticker_symbol:
     try:
         # Call our new safely cached framework function
-        data = fetch_financial_data(ticker_symbol)
+        # ==============================================================================
+# 1. DEFINE SAFE DATA EXTRACTION FUNCTION
+# ==============================================================================
+def safe_fetch_financials(ticker_symbol):
+    """
+    Safely loads yfinance ticker info without risking app crashes
+    """
+    fallback_data = {
+        "long_name": "N/A", "sector": "N/A", "industry": "N/A",
+        "eps": None, "peg_ratio": None, "beta": None, "stock_price": 0.0,
+        "net_profits": None, "sales": None, "total_equity": None,
+        "total_current_assets": None, "total_current_liabilities": None,
+        "shares_outstanding": None
+    }
+    
+    try:
+        import yfinance as yf
+        ticker_data = yf.Ticker(ticker_symbol)
+        info = ticker_data.info
         
-        if not data["shares_outstanding"] or data["stock_price"] == 0.0:
-            st.error(f"Ticker symbol '{ticker_symbol}' is valid, but Yahoo Finance does not have complete public share configurations for it.")
-        else:
-            # --- CALCULATE INTERMEDIATE SCREENER RATIOS ---
-            if data["total_equity"] and data["shares_outstanding"]:
-                book_value_per_share = data["total_equity"] / data["shares_outstanding"]
-            else:
-                book_value_per_share = data["book_value_fallback"]
-                
-            if data["stock_price"] and book_value_per_share:
-                pb_ratio = data["stock_price"] / book_value_per_share
-            else:
-                pb_ratio = data["pb_fallback"]
-                
-            if data["stock_price"] and data["eps"] and data["eps"] > 0:
-                pe_ratio = data["stock_price"] / data["eps"]
-            else:
-                pe_ratio = data["pe_fallback"]
-                
-            net_profit_margin = ((data["net_profits"] / data["sales"]) * 100) if data["sales"] and data["net_profits"] else (data["profit_margin_fallback"] * 100)
-            current_ratio = (data["total_current_assets"] / data["total_current_liabilities"]) if data["total_current_assets"] and data["total_current_liabilities"] else 0.0
-            
-            dividend_yield = (data["dividend_per_share"] / data["stock_price"]) * 100 if data["stock_price"] else (data["div_yield_fallback"] * 100)
-            if data["eps"] and data["eps"] > 0:
-                dividend_payout = (data["dividend_per_share"] / data["eps"]) * 100
-            else:
-                dividend_payout = (data["payout_ratio_fallback"] * 100)
-# --- FETCH AND PREPARE DATA ---
-    # (Your yfinance data fetching logic runs here)
-    # Make sure your ticker data is pulling the beta safely into your data dictionary:
-    data["beta"] = ticker_data.info.get("beta")
+        # Populate the dictionary safely using .get() to ignore missing API data
+        return {
+            "long_name": info.get("longName", ticker_symbol),
+            "sector": info.get("sector", "N/A"),
+            "industry": info.get("industry", "N/A"),
+            "eps": info.get("trailingEps"),
+            "peg_ratio": info.get("pegRatio"),
+            "beta": info.get("beta"),  # <--- Safely mapped!
+            "stock_price": info.get("currentPrice", 0.0),
+            "net_profits": info.get("netIncomeToCommon"),
+            "sales": info.get("totalRevenue"),
+            "total_equity": info.get("totalStockholderEquity"),
+            "total_current_assets": info.get("totalCurrentAssets"),
+            "total_current_liabilities": info.get("totalCurrentLiabilities"),
+            "shares_outstanding": info.get("sharesOutstanding")
+        }
+    except Exception as error_msg:
+        st.warning(f"Using default structure due to fetch warning: {error_msg}")
+        return fallback_data
 
-except Exception as e:
-    st.error(f"An error occurred while loading data: {e}")
-    st.stop()
 
-# --- RENDER WEB UI LAYOUT --- 
+# ==============================================================================
+# 2. RUN EXTRACTION PIPELINE (Change "AAPL" to your ticker string variable)
+# ==============================================================================
+current_ticker = "AAPL" 
+data = safe_fetch_financials(current_ticker)
+
+
+# ==============================================================================
+# 3. RENDER WEB UI LAYOUT (No try blocks allowed down here!)
+# ==============================================================================
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
 st.markdown("---")
 
 col1, col2, col3 = st.columns(3)
+
 
 with col1:
     st.markdown("### 📈 Earnings & Valuation")
