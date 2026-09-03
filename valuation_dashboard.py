@@ -111,18 +111,18 @@ def safe_fetch_financials(ticker_symbol):
     }
     
     try:
+        # Every line inside this block must be indented by exactly 4 spaces
         import yfinance as yf
         ticker_data = yf.Ticker(ticker_symbol)
         info = ticker_data.info
         
-        # Populate the dictionary safely using .get() to ignore missing API data
         return {
             "long_name": info.get("longName", ticker_symbol),
             "sector": info.get("sector", "N/A"),
             "industry": info.get("industry", "N/A"),
             "eps": info.get("trailingEps"),
             "peg_ratio": info.get("pegRatio"),
-            "beta": info.get("beta"),  # <--- Safely mapped!
+            "beta": info.get("beta"),  
             "stock_price": info.get("currentPrice", 0.0),
             "net_profits": info.get("netIncomeToCommon"),
             "sales": info.get("totalRevenue"),
@@ -137,21 +137,20 @@ def safe_fetch_financials(ticker_symbol):
 
 
 # ==============================================================================
-# 2. RUN EXTRACTION PIPELINE (Change "AAPL" to your ticker string variable)
+# 2. RUN EXTRACTION PIPELINE (Change "AAPL" to your actual input variable name)
 # ==============================================================================
 current_ticker = "AAPL" 
 data = safe_fetch_financials(current_ticker)
 
 
 # ==============================================================================
-# 3. RENDER WEB UI LAYOUT (No try blocks allowed down here!)
+# 3. RENDER WEB UI LAYOUT
 # ==============================================================================
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
 st.markdown("---")
 
 col1, col2, col3 = st.columns(3)
-
 
 with col1:
     st.markdown("### 📈 Earnings & Valuation")
