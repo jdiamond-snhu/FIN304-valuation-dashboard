@@ -93,7 +93,7 @@ def fetch_financial_data(ticker):
 
 # --- APPLICATION ENGINE RUN ---
 if ticker_symbol:
-    try:
+     try:
         # Call our new safely cached framework function
         # ==============================================================================
 # 1. DEFINE SAFE DATA EXTRACTION FUNCTION
