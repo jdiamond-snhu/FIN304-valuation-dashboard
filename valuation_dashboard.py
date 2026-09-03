@@ -78,6 +78,7 @@ dividend_payout = (div_p_raw * 100) if div_p_raw is not None else None
 # ==============================================================================
 # 4. RENDER WEB UI LAYOUT
 # ==============================================================================
+st.title("Valuation Dashboard")
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
 st.markdown("---")
