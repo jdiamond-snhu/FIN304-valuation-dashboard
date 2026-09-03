@@ -103,8 +103,8 @@ with col2:
 
 with col3:
     st.markdown("### 💸 Dividends & Capital Allocation")
-    st.metric("Dividend Yield", f"{dividend_yield:.2f}%")
-    st.metric("Dividend Payout Ratio", f"{dividend_payout:.2f}%")
+    st.metric("Dividend Yield", f"{dividend_yield:.2f}%" if dividend_yield is not None else "N/A")
+    st.metric("Dividend Payout Ratio", f"{dividend_payout:.2f}%" if dividend_payout is not None else "N/A")
     st.metric("Current Market Price", f"${data['stock_price']:.2f}")
 
 # ==============================================================================
