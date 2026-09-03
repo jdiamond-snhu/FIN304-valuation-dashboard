@@ -25,7 +25,8 @@ def fetch_company_financials(symbol):
         "eps": None, "peg_ratio": None, "beta": None, "stock_price": 0.0,
         "net_profits": None, "sales": None, "total_equity": None,
         "total_current_assets": None, "total_current_liabilities": None,
-        "shares_outstanding": None
+        "shares_outstanding": None,
+        "free_cash_flow": None  # <--- ADD THIS
     }
     
     try:
@@ -49,6 +50,7 @@ def fetch_company_financials(symbol):
             "total_current_assets": info.get("totalCurrentAssets"),
             "total_current_liabilities": info.get("totalCurrentLiabilities"),
             "shares_outstanding": info.get("sharesOutstanding"),
+            "free_cash_flow": info.get("freeCashflow"),  # <--- ADD THIS
             "dividend_yield": info.get("dividendYield"),
             "payout_ratio": info.get("payoutRatio")
         }
@@ -118,10 +120,12 @@ sales_k = (data["sales"] / 1000) if data["sales"] else 0.0
 equity_k = (data["total_equity"] / 1000) if data["total_equity"] else 0.0
 assets_k = (data["total_current_assets"] / 1000) if data["total_current_assets"] else 0.0
 liab_k = (data["total_current_liabilities"] / 1000) if data["total_current_liabilities"] else 0.0
-
+# ---> ADD THIS LINE:
+fcf_k = (data["free_cash_flow"] / 1000) if data["free_cash_flow"] else 0.0
 raw_data = {
     "Financial Metric": [
         "Net Profits to Common", 
+        "Free Cash Flow (FCF)",  # <--- ADD THIS ROW NAME
         "Total Revenue (Sales)", 
         "Total Stockholders Equity", 
         "Total Current Assets", 
@@ -130,6 +134,7 @@ raw_data = {
     ],
     "Value": [
         f"${net_profits_k:,.2f}K" if net_profits_k else "N/A",
+        f"${fcf_k:,.2f}K" if fcf_k else "N/A",  # <--- ADD THIS VALUE MAPPING
         f"${sales_k:,.2f}K" if sales_k else "N/A",
         f"${equity_k:,.2f}K" if equity_k else "N/A",
         f"${assets_k:,.2f}K" if assets_k else "N/A",
