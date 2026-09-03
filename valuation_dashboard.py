@@ -68,8 +68,10 @@ book_value_per_share = (data["total_equity"] / data["shares_outstanding"]) if (d
 pb_ratio = (data["stock_price"] / book_value_per_share) if (data["stock_price"] and book_value_per_share) else None
 
 net_profit_margin = (data["net_profits"] / data["sales"] * 100) if (data["net_profits"] and data["sales"]) else 0.0
-dividend_yield = 0.0      # Placeholder or map from info if required
-dividend_payout = 0.0     # Placeholder or map from info if required
+div_y_raw = data.get("dividend_yield")
+dividend_yield = (div_y_raw * 100) if div_y_raw is not None else None
+div_p_raw = data.get("payout_ratio")
+dividend_payout = (div_p_raw * 100) if div_p_raw is not None else None
 
 # ==============================================================================
 # 4. RENDER WEB UI LAYOUT
