@@ -49,6 +49,8 @@ def fetch_company_financials(symbol):
             "total_current_assets": info.get("totalCurrentAssets"),
             "total_current_liabilities": info.get("totalCurrentLiabilities"),
             "shares_outstanding": info.get("sharesOutstanding")
+            "dividend_yield": info.get("dividendYield"),
+            "payout_ratio": info.get("payoutRatio")
         }
     except Exception as e:
         st.sidebar.error(f"Error gathering data for {symbol}: {e}")
