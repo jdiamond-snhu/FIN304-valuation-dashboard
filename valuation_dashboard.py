@@ -2,108 +2,26 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 
-# Set page configuration
-st.set_page_config(
-    page_title="Equity Valuation Dashboard",
-    page_icon="📈",
-    layout="wide"
-)
+# Set up page configurations
+st.set_page_config(page_title="FIN304 Valuation Dashboard", layout="wide")
 
-st.title("📈 Fundamental Equity Valuation Dashboard")
-st.caption("""Designed by Jeff Diamond, 2026""")
-st.write("""
-**Directions:** Input any public ticker symbol 
-to instantly pull real-time market metrics and financial statement data.
-""")
-
-# --- SIDEBAR INPUTS ---
-st.sidebar.header("🛠️ Dashboard Controls")
-ticker_symbol = st.sidebar.text_input("Enter Ticker Symbol (e.g., AAPL, MSFT, F):", value="AAPL").upper()
-
-# --- OPTIMIZED CACHED DATA FETCHING ENGINE ---
-# This saves the stock metrics in memory for 20 minutes (1200 seconds) so Yahoo doesn't block you!
-@st.cache_data(ttl=1200)
-def fetch_financial_data(ticker):
-    stock = yf.Ticker(ticker)
-    info = stock.info
-    
-    # Extract Core Income Statement Data
-    sales = info.get("totalRevenue") or info.get("grossProfits") or 0.0
-    shares_outstanding = info.get("sharesOutstanding")
-    stock_price = info.get("currentPrice") or info.get("previousClose") or 0.0
-    net_profits = info.get("netIncomeToCommon") or info.get("netIncome")
-    
-    # Calculate or extract EPS safely
-    if shares_outstanding and net_profits:
-        eps = net_profits / shares_outstanding
-    else:
-        eps = info.get("trailingEps") or info.get("forwardEps") or 0.0
-        if eps and shares_outstanding and not net_profits:
-            net_profits = eps * shares_outstanding
-            
-    # Extract Balance Sheet Metrics safely
-    total_equity = info.get("totalShareholdersEquity") or info.get("bookValue", 0.0) * (shares_outstanding or 1)
-    
-    total_current_assets = None
-    total_current_liabilities = None
-    
-    try:
-        q_bs = stock.quarterly_balance_sheet
-        if not q_bs.empty:
-            latest_col = q_bs.columns
-            if 'Current Assets' in q_bs.index:
-                val_assets = q_bs.loc['Current Assets', latest_col]
-                total_current_assets = float(val_assets.iloc if isinstance(val_assets, pd.Series) else val_assets)
-            if 'Current Liabilities' in q_bs.index:
-                val_liab = q_bs.loc['Current Liabilities', latest_col]
-                total_current_liabilities = float(val_liab.iloc if isinstance(val_liab, pd.Series) else val_liab)
-    except Exception:
-        pass
-        
-    if total_current_assets is None:
-        total_current_assets = info.get("totalCurrentAssets") or 0.0
-    if total_current_liabilities is None:
-        total_current_liabilities = info.get("totalCurrentLiabilities") or 0.0
-    
-    dividend_per_share = info.get("dividendRate") or info.get("trailingAnnualDividendRate") or 0.0
-    if not dividend_per_share and info.get("dividendYield"):
-        dividend_per_share = info.get("dividendYield") * stock_price
-        
-    peg_ratio = info.get("pegRatio")
-    long_name = info.get('longName', ticker)
-    sector = info.get('sector', 'N/A')
-    industry = info.get('industry', 'N/A')
-    payout_ratio_fallback = info.get("payoutRatio", 0.0)
-    profit_margin_fallback = info.get("profitMargins", 0.0)
-    book_value_fallback = info.get("bookValue") or 0.0
-    pb_fallback = info.get("priceToBook") or 0.0
-    pe_fallback = info.get("trailingPE") or info.get("forwardPE") or 0.0
-    div_yield_fallback = info.get("dividendYield", 0.0)
-
-    # Bundle all pulled metrics into a safe dictionary payload
-    return {
-        "sales": sales, "shares_outstanding": shares_outstanding, "stock_price": stock_price,
-        "net_profits": net_profits, "eps": eps, "total_equity": total_equity,
-        "total_current_assets": total_current_assets, "total_current_liabilities": total_current_liabilities,
-        "dividend_per_share": dividend_per_share, "peg_ratio": peg_ratio, "long_name": long_name,
-        "sector": sector, "industry": industry, "payout_ratio_fallback": payout_ratio_fallback,
-        "profit_margin_fallback": profit_margin_fallback, "book_value_fallback": book_value_fallback,
-        "pb_fallback": pb_fallback, "pe_fallback": pe_fallback, "div_yield_fallback": div_yield_fallback
-    }
-
-# --- APPLICATION ENGINE RUN ---
-if ticker_symbol:
-     try:
-        # Call our new safely cached framework function
-        # ==============================================================================
-# 1. DEFINE SAFE DATA EXTRACTION FUNCTION
 # ==============================================================================
-def safe_fetch_financials(ticker_symbol):
+# 1. SIDEBAR NAVIGATION & TICKER INPUT
+# ==============================================================================
+st.sidebar.header("📊 Dashboard Settings")
+ticker_symbol = st.sidebar.text_input("Enter Stock Ticker Symbol:", value="AAPL").upper().strip()
+
+# ==============================================================================
+# 2. DATA EXTRACTION FUNCTION (CACHED FOR INSTANT PERFORMANCE)
+# ==============================================================================
+@st.cache_data(ttl=3600)  # Caches results for 1 hour to keep UI lightning fast
+def fetch_company_financials(symbol):
     """
-    Safely loads yfinance ticker info without risking app crashes
+    Safely connects to yfinance and builds a normalized data structure.
+    If the API call fails or metrics are missing, it falls back to safe default fields.
     """
     fallback_data = {
-        "long_name": "N/A", "sector": "N/A", "industry": "N/A",
+        "long_name": symbol, "sector": "N/A", "industry": "N/A",
         "eps": None, "peg_ratio": None, "beta": None, "stock_price": 0.0,
         "net_profits": None, "sales": None, "total_equity": None,
         "total_current_assets": None, "total_current_liabilities": None,
@@ -111,18 +29,19 @@ def safe_fetch_financials(ticker_symbol):
     }
     
     try:
-        # Every line inside this block must be indented by exactly 4 spaces
-        import yfinance as yf
-        ticker_data = yf.Ticker(ticker_symbol)
+        ticker_data = yf.Ticker(symbol)
         info = ticker_data.info
         
+        if not info:
+            return fallback_data
+            
         return {
-            "long_name": info.get("longName", ticker_symbol),
+            "long_name": info.get("longName", symbol),
             "sector": info.get("sector", "N/A"),
             "industry": info.get("industry", "N/A"),
             "eps": info.get("trailingEps"),
             "peg_ratio": info.get("pegRatio"),
-            "beta": info.get("beta"),  
+            "beta": info.get("beta"),  # <-- Extracted cleanly here
             "stock_price": info.get("currentPrice", 0.0),
             "net_profits": info.get("netIncomeToCommon"),
             "sales": info.get("totalRevenue"),
@@ -131,20 +50,27 @@ def safe_fetch_financials(ticker_symbol):
             "total_current_liabilities": info.get("totalCurrentLiabilities"),
             "shares_outstanding": info.get("sharesOutstanding")
         }
-    except Exception as error_msg:
-        st.warning(f"Using default structure due to fetch warning: {error_msg}")
+    except Exception as e:
+        st.sidebar.error(f"Error gathering data for {symbol}: {e}")
         return fallback_data
 
+# ==============================================================================
+# 3. INITIALIZE VARIABLES & CALCULATIONS
+# ==============================================================================
+data = fetch_company_financials(ticker_symbol)
+
+# Calculate financial ratios derived from raw metrics
+pe_ratio = (data["stock_price"] / data["eps"]) if (data["eps"] and data["eps"] != 0) else None
+
+book_value_per_share = (data["total_equity"] / data["shares_outstanding"]) if (data["total_equity"] and data["shares_outstanding"]) else None
+pb_ratio = (data["stock_price"] / book_value_per_share) if (data["stock_price"] and book_value_per_share) else None
+
+net_profit_margin = (data["net_profits"] / data["sales"] * 100) if (data["net_profits"] and data["sales"]) else 0.0
+dividend_yield = 0.0      # Placeholder or map from info if required
+dividend_payout = 0.0     # Placeholder or map from info if required
 
 # ==============================================================================
-# 2. RUN EXTRACTION PIPELINE (Change "AAPL" to your actual input variable name)
-# ==============================================================================
-current_ticker = "AAPL" 
-data = safe_fetch_financials(current_ticker)
-
-
-# ==============================================================================
-# 3. RENDER WEB UI LAYOUT
+# 4. RENDER WEB UI LAYOUT
 # ==============================================================================
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
@@ -159,12 +85,11 @@ with col1:
     st.metric("Price-to-Book (P/B) Ratio", f"{pb_ratio:.2f}" if pb_ratio else "N/A")
     st.metric("PEG Ratio", f"{data['peg_ratio']:.2f}" if data['peg_ratio'] else "N/A")
     
-    # Extract beta safely from your yfinance data dictionary
-    beta = data.get("beta")
+    # Brand new Drop-In Beta Component:
     st.metric(
         label="Beta (Volatility)", 
-        value=f"{beta:.2f}" if beta is not None else "N/A",
-        help="Measures volatility relative to the market. > 1.0 is more volatile; < 1.0 is less volatile."
+        value=f"{data['beta']:.2f}" if data['beta'] is not None else "N/A",
+        help="Measures volatility relative to the market. Beta > 1.0 is more volatile; Beta < 1.0 is less volatile."
     )
 
 with col2:
@@ -178,7 +103,9 @@ with col3:
     st.metric("Dividend Payout Ratio", f"{dividend_payout:.2f}%")
     st.metric("Current Market Price", f"${data['stock_price']:.2f}")
 
-# --- DETAILED DATA TABLE ---
+# ==============================================================================
+# 5. DETAILED DATA TABLE
+# ==============================================================================
 st.markdown("---")
 st.markdown("### 🗒️ Raw Financial Data Inputs (in Thousands)")
 
@@ -189,7 +116,14 @@ assets_k = (data["total_current_assets"] / 1000) if data["total_current_assets"]
 liab_k = (data["total_current_liabilities"] / 1000) if data["total_current_liabilities"] else 0.0
 
 raw_data = {
-    "Financial Metric": ["Net Profits to Common", "Total Revenue (Sales)", "Total Stockholders Equity", "Total Current Assets", "Total Current Liabilities", "Total Shares Outstanding"],
+    "Financial Metric": [
+        "Net Profits to Common", 
+        "Total Revenue (Sales)", 
+        "Total Stockholders Equity", 
+        "Total Current Assets", 
+        "Total Current Liabilities", 
+        "Total Shares Outstanding"
+    ],
     "Value": [
         f"${net_profits_k:,.2f}K" if net_profits_k else "N/A",
         f"${sales_k:,.2f}K" if sales_k else "N/A",
@@ -199,7 +133,5 @@ raw_data = {
         f"{data['shares_outstanding']:,.0f}" if data['shares_outstanding'] else "N/A"
     ]
 }
-st.table(pd.DataFrame(raw_data))
 
-    except Exception as e:
-        st.error(f"Yahoo Finance is experiencing temporary cloud network rate blocks. Please wait a few moments and try your request again. Details: {e}")
+st.table(pd.DataFrame(raw_data))
