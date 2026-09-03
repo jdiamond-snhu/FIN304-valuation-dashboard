@@ -48,7 +48,7 @@ def fetch_company_financials(symbol):
             "total_equity": info.get("totalStockholderEquity"),
             "total_current_assets": info.get("totalCurrentAssets"),
             "total_current_liabilities": info.get("totalCurrentLiabilities"),
-            "shares_outstanding": info.get("sharesOutstanding")
+            "shares_outstanding": info.get("sharesOutstanding"),
             "dividend_yield": info.get("dividendYield"),
             "payout_ratio": info.get("payoutRatio")
         }
