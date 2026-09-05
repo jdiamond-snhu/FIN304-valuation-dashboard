@@ -73,7 +73,7 @@ net_profit_margin = (data["net_profits"] / data["sales"] * 100) if (data["net_pr
 div_y_raw = data.get("dividend_yield")
 dividend_yield = div_y_raw * 100 if div_y_raw < 1.0 else div_y_raw * 1
 div_p_raw = data.get("payout_ratio")
-dividend_payout = (div_p_raw * 100) if div_p_raw is not None else None
+dividend_payout = (div_p_raw * 100) if div_p_raw < 1.0 else div_y_raw * 1
 
 # ==============================================================================
 # 4. RENDER WEB UI LAYOUT
