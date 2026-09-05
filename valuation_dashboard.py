@@ -80,7 +80,7 @@ dividend_payout = (div_p_raw * 100) if div_p_raw is not None else None
 # ==============================================================================
 st.title("Valuation Dashboard")
 st.write("Designed by Jeff Diamond")
-st.write("**Directions:** Enter an equity ticker in the sidebar field to see its valuation.")
+st.write("**Directions:** Enter an equity ticker in the sidebar field to see its valuation below.")
 st.markdown("---")
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
