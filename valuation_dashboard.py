@@ -80,7 +80,7 @@ dividend_payout = (div_p_raw * 100) if div_p_raw < 1.0 else div_y_raw * 1
 # ==============================================================================
 st.title("Valuation Dashboard")
 st.caption("Designed by Jeff Diamond (Radecki), 2026.")
-st.write("**Directions:** Enter an equity ticker in the sidebar field to see its valuation below.")
+st.write("**Directions:** Enter an individual stock ticker in the sidebar field to see its valuation below.")
 st.markdown("---")
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
 st.write(f"**Sector:** {data['sector']} | **Industry:** {data['industry']}")
