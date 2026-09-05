@@ -79,7 +79,7 @@ dividend_payout = (div_p_raw * 100) if div_p_raw is not None else None
 # 4. RENDER WEB UI LAYOUT
 # ==============================================================================
 st.title("Valuation Dashboard")
-st.write("Designed by Jeff Diamond")
+st.caption("Designed by Jeff Diamond (Radecki), 2026.")
 st.write("**Directions:** Enter an equity ticker in the sidebar field to see its valuation below.")
 st.markdown("---")
 st.subheader(f"🏢 Company Profile: {data['long_name']}")
